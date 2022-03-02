@@ -1,6 +1,6 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Switch, Route, Redirect } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useSelector,useDispatch } from "react-redux";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { createStructuredSelector } from "reselect";
 
 import "./App.css";
@@ -13,47 +13,35 @@ import CheckoutPage from "./pages/checkout/checkout.component";
 import Header from "./components/header/header.component";
 
 import { selectCurrentUser } from "./redux/user/user.selectors";
-import {checkUserPersistence} from './redux/user/user.action'; 
+import { checkUserPersistence } from "./redux/user/user.action";
 
-class App extends React.Component {
-  unsubscribeFromAuth = null;
+const App = () => {
+  const currentUser = useSelector(selectCurrentUser);
+  const dispatch = useDispatch();
 
-  componentDidMount() {
-    const {checkUserPersistence} = this.props;
-    checkUserPersistence();
-  }
+  useEffect(() => {
+    dispatch(checkUserPersistence());
+  }, [dispatch]);
 
-  render() {
-    return (
-      <div>
-        <Header />
-        <Switch>
-          <Route exact path="/" component={Homepage} />
-          <Route path="/shop" component={ShopPage} />
-          <Route exact path="/checkout" component={CheckoutPage} />
-          <Route
-            exact
-            path="/signin"
-            render={() =>
-              this.props.currentUser ? (
-                <Redirect to="/" />
-              ) : (
-                <SignInAndSignUpPage />
-              )
-            }
-          />
-        </Switch>
-      </div>
-    );
-  }
-}
+  return (
+    <div>
+      <Header />
+      <Routes>
+        <Route exact path="/" element={<Homepage/>} />
+        <Route path="/shop/*" element={<ShopPage/>} />
+        <Route exact path="/checkout" element={<CheckoutPage/>} />
+        <Route
+          exact
+          path="/signin"
+          render={() =>
+            currentUser ? <Navigate to="/" /> : <SignInAndSignUpPage />
+          }
+        />
+      </Routes>
+    </div>
+  );
+};
 
-const mapStateToProps = createStructuredSelector({
-  currentUser: selectCurrentUser
-});
 
-const mapDispatchToProps = dispatch => ({
-  checkUserPersistence: ()=> dispatch(checkUserPersistence())
-})
 
-export default connect(mapStateToProps,mapDispatchToProps)(App);
+export default App;
